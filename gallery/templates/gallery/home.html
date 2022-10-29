@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+img {
+	max-width: 100%;
+	transition: all 0.2s ease-in-out;
+}
+.container {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 100vh;
+	padding: 1rem;
+	z-index: 2;
+	position: relative;
+}
+
+.container .main-img.active + .overlay {
+	content: "";
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	inset: 0;
+	background-color: rgb(0 0 0 / 75%);
+	z-index: 5;
+}
+
+.container .main-img {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 800px;
+	height: 600px;
+	padding: 2rem;
+	display: none;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	z-index: 6;
+	animation: imgTransition 0.45s ease-in-out;
+}
+
+.container .main-img .close,
+.container .main-img .next,
+.container .main-img .prev {
+	position: absolute;
+	top: 0;
+	right: 2rem;
+	margin-left: auto;
+}
+
+.container .main-img img {
+	width: 100%;
+	height: 100%;
+}
+
+.container .main-img .close {
+	width: 30px;
+	height: 30px;
+}
+
+.container .main-img .next {
+	right: -60px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 80px;
+	height: 40px;
+	font-size: 16px;
+}
+.container .main-img .prev {
+	left: -60px;
+	right: auto;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 80px;
+	height: 40px;
+	font-size: 16px;
+}
+.container .gallery-wrapper {
+	display: grid;
+	gap: 10px;
+	grid-template-columns: repeat(3, 1fr);
+	position: relative;
+	z-index: 4;
+}
+
+@keyframes imgTransition {
+	0% {
+		opacity: 0;
+		visibility: hidden;
+	}
+	50% {
+		opacity: 0.5;
+		visibility: visible;
+	}
+	100% {
+		opacity: 1;
+		visibility: visible;
+	}
+}
+
+    </style>
+</head>
+<body>
+    <div style="margin: 20px auto">
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="image" required>
+        <input type="submit" style="background-color: blue; padding: 5px 15px; border-radius: 10px; color: white; font-weight: bold" value="Upload">
+    </form>
+    {% for message in messages %}
+    <p style="color: green; font-weight: bold; font-size: 20px; padding: 10px">{{message}}</p>
+    {% endfor %}
+    
+    </div>
+    <div class="container">
+        <div class="main-img">
+            <button class="close">&times;</button>
+            <button class="next">Next</button>
+            <button class="prev">Prev</button>
+            <img src="https://demo.epic-webdesign.com/tf-fable/cafe/images/food0.jpg" alt="">
+        </div>
+        <div class="overlay"></div>
+        <div class="gallery-wrapper">
+            {% for image in images %}
+            <div class="img">
+                <img src="{{ image.image.url }}" alt="">
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <script>
+        const mainImg = document.querySelector(".main-img");
+const images = document.querySelectorAll(".gallery-wrapper img");
+const closeBtn = document.querySelector(".close");
+const nextBtn = document.querySelector(".next");
+const prevBtn = document.querySelector(".prev");
+
+nextBtn.addEventListener("click", nextImg);
+prevBtn.addEventListener("click", prevImg);
+
+closeBtn.addEventListener("click", (e) => {
+	mainImg.style.display = "none";
+	mainImg.classList.remove("active");
+});
+
+// Creating Animation For Image Transition
+
+const imgStyles = `animation: imgTransition 0.450s  ease-in-out`;
+
+let showImg = document.querySelector(".main-img img");
+
+let imagesArray = [];
+
+let selectedImg;
+
+// Click Next Button Function
+
+function nextImg() {
+	if (selectedImg < 0) return;
+	let number = Number(selectedImg);
+	let higestCount = Number(imagesArray.length - 1);
+	if (number === higestCount) {
+		number = 0;
+	} else {
+		number++;
+	}
+	selectedImg = number;
+	showImg.src = imagesArray[selectedImg];
+	addRemoveAnimation();
+}
+
+// Click Prev Button Function
+
+function prevImg() {
+	if (selectedImg < 0) return;
+	let number = Number(selectedImg);
+	let lowestCount = 0;
+	let higestCount = Number(imagesArray.length - 1);
+	if (number <= lowestCount) {
+		number = higestCount;
+	} else {
+		number--;
+	}
+	selectedImg = number;
+	showImg.src = imagesArray[selectedImg];
+	addRemoveAnimation();
+}
+
+// Initial Click Handler
+
+for (let image of images) {
+	imagesArray.push(image.src);
+	image.addEventListener("click", (e) => {
+		let img = e.target;
+		currentSelectedImg = imagesArray.indexOf(img.src);
+		mainImg.style.display = "block";
+		mainImg.classList.add("active");
+		showImg.src =
+			imagesArray[selectedImg !== undefined ? selectedImg : currentSelectedImg];
+		selectedImg = currentSelectedImg;
+	});
+}
+
+// Function for add and Remove Style Attribute
+
+function addRemoveAnimation() {
+	showImg.setAttribute("style", imgStyles);
+	setTimeout(() => {
+		showImg.setAttribute("style", "");
+	}, 500);
+}
+
+    </script>
+</body>
+</html>
